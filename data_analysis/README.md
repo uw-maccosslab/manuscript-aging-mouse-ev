@@ -12,6 +12,7 @@ data_analysis/
 ├── protein-fixed-effect-ols.ipynb
 ├── protein-fixed-effect-ols-sex-age-ixn.ipynb
 ├── find-significant-peptides-not-significant-proteins.ipynb
+├── peptide-regression-model.ipynb
 ├── data/
 │   ├── precursors_normalized_wide.tsv
 │   └── proteins_normalized_wide.tsv
@@ -21,7 +22,8 @@ data_analysis/
     ├── peptides-mouse-aging-features-ols.csv
     ├── proteins-mouse-aging-features-ols.csv
     ├── mouse-sex-specific-age-effect-features-ols.csv
-    └── peptide_protein_q_table.csv
+    ├── peptide_protein_q_table.csv
+    └── peptide-age-regression-feature-importances.csv
 ```
 
 ---
@@ -166,6 +168,33 @@ One row per (peptide, protein) pair with the following columns:
 | `protein_q_value` | BH-adjusted FDR for the age effect at the protein level; `NaN` if the protein was not found in the protein-level results |
 
 The notebook also produces a scatter plot of −log10(protein q-value) vs −log10(peptide q-value) for all peptide–protein pairs, with a linear regression line and R² reported. Peptides that are significant (q < 0.01) while their parent protein is not are highlighted in red.
+
+---
+
+### `peptide-regression-model.ipynb`
+
+Trains an ElasticNet regularized regression model to predict animal age (in months) from peptide-level abundances. Model performance is evaluated using repeated k-fold cross-validation, and feature importances (average ElasticNet coefficients across folds) are saved for downstream interpretation.
+
+**Inputs:**
+- `data/precursors_normalized_wide.tsv` — peptide-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded
+
+**Pre-processing:** Duplicate peptide entries are deduplicated by modified sequence. Abundances are un-logged (2^x), then re-transformed with log10. Sex is encoded as a binary feature (Male = 0, Female = 1) and appended as an additional predictor column.
+
+**Model:** ElasticNet regression (`alpha=0.01`, `l1_ratio=0.3`) fit to predict age in months. Model performance is assessed with repeated k-fold cross-validation (10 splits × 5 repeats). Features are standard-scaled within each training fold. Performance metrics reported include cross-validation MAE, naive MAE baseline (mean-prediction), and R² of predicted vs. true age.
+
+**Outputs:**
+- `results/peptide-age-regression-feature-importances.csv` — per-feature average ElasticNet coefficients across all CV folds
+- `results/peptide-age-regression-scatter-boxplot` — box plot with individual prediction points overlaid, saved as `.pdf`, `.svg`, and `.png`
+- `results/peptide-age-regression-confusion-matrix` — confusion matrix of discretized predicted vs. true ages, saved as `.pdf`, `.svg`, and `.png`
+
+`peptide-age-regression-feature-importances.csv` columns:
+
+| Column | Description |
+|--------|-------------|
+| `feature` | Peptide label (`modifiedSequence (protein)`) or `sex` for the sex covariate |
+| `coefficient` | Average ElasticNet coefficient across all CV folds; zero for features excluded by regularization |
+| `nonzero_count` | Number of CV folds (out of `splits × repeats` total) in which the feature received a non-zero coefficient |
 
 ---
 
