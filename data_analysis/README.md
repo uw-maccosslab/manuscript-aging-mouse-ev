@@ -8,12 +8,164 @@ This directory contains the processed quantitative proteomics data and associate
 
 ```
 data_analysis/
+├── peptide-fixed-effect-ols.ipynb
+├── protein-fixed-effect-ols.ipynb
+├── protein-fixed-effect-ols-sex-age-ixn.ipynb
+├── find-significant-peptides-not-significant-proteins.ipynb
 ├── data/
 │   ├── precursors_normalized_wide.tsv
 │   └── proteins_normalized_wide.tsv
-└── metadata/
-    └── metadata_wide.tsv
+├── metadata/
+│   └── metadata_wide.tsv
+└── results/
+    ├── peptides-mouse-aging-features-ols.csv
+    ├── proteins-mouse-aging-features-ols.csv
+    ├── mouse-sex-specific-age-effect-features-ols.csv
+    └── peptide_protein_q_table.csv
 ```
+
+---
+
+## Notebooks
+
+### `peptide-fixed-effect-ols.ipynb`
+
+Fits a fixed-effects ordinary least squares (OLS) regression model to peptide-level abundance data to identify individual peptides (precursor ions) whose abundance changes with age, controlling for sex as a covariate.
+
+**Inputs:**
+- `data/precursors_normalized_wide.tsv` — peptide-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded from the analysis
+
+**Pre-processing:** Duplicate peptide entries (same modified sequence appearing under multiple proteins) are deduplicated by modified sequence. Where a peptide maps to multiple proteins, the protein identifiers are merged into a comma-delimited string. Each row in the results is labeled as `modifiedSequence (protein)` for traceability.
+
+**Model:**
+
+For each peptide precursor, the following additive OLS model is fit:
+
+```
+peptide ~ month + sex
+        = β0 + β1·month + β2·sex[Female]
+```
+
+where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference). Peptide abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+
+**Output:** `results/peptides-mouse-aging-features-ols.csv`
+
+One row per unique peptide with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `protein` | Label formatted as `modifiedSequence (protein_name)`; if the peptide maps to multiple proteins, protein names are comma-delimited |
+| `coef_month` | OLS slope for age (months), controlling for sex |
+| `std_err` | Standard error of `coef_month` |
+| `p_value` | Two-sided p-value for the age slope |
+| `q_value` | BH-adjusted FDR for the age slope |
+| `ci_lower` / `ci_upper` | Confidence interval bounds for `coef_month` |
+| `minus_log10_p` | −log10(p_value), for convenience |
+| `signif_FDR<0.010` | `True` if `q_value` < 0.01 |
+| `error` | Error message if model fitting failed for this peptide (otherwise absent) |
+
+---
+
+### `protein-fixed-effect-ols.ipynb`
+
+Fits a fixed-effects ordinary least squares (OLS) regression model to protein-level abundance data to identify proteins whose abundance changes with age, controlling for sex as a covariate.
+
+**Inputs:**
+- `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded from the analysis
+
+**Model:**
+
+For each protein, the following additive OLS model is fit:
+
+```
+protein ~ month + sex
+        = β0 + β1·month + β2·sex[Female]
+```
+
+where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference) but no interaction between age and sex is modeled. Protein abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+
+**Output:** `results/proteins-mouse-aging-features-ols.csv`
+
+One row per protein with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `protein` | Protein identifier |
+| `coef_month` | OLS slope for age (months), controlling for sex |
+| `std_err` | Standard error of `coef_month` |
+| `p_value` | Two-sided p-value for the age slope |
+| `q_value` | BH-adjusted FDR for the age slope |
+| `ci_lower` / `ci_upper` | Confidence interval bounds for `coef_month` |
+| `minus_log10_p` | −log10(p_value), for convenience |
+| `signif_FDR<0.010` | `True` if `q_value` < 0.01 |
+| `error` | Error message if model fitting failed for this protein (otherwise absent) |
+
+---
+
+### `protein-fixed-effect-ols-sex-age-ixn.ipynb`
+
+Fits a fixed-effects ordinary least squares (OLS) regression model to protein-level abundance data to identify proteins whose abundance changes with age and to test whether those age-related changes differ between sexes.
+
+**Inputs:**
+- `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded from the analysis
+
+**Model:**
+
+For each protein, the following OLS model is fit:
+
+```
+protein ~ month * sex
+        = β0 + β1·month + β2·sex[Female] + β3·(month × sex[Female])
+```
+
+where `month` is the animal's age in months and `sex` is treatment-coded with Male as the reference. Protein abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) and the sex × age interaction term (`β3`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+
+**Output:** `results/mouse-sex-specific-age-effect-features-ols.csv`
+
+One row per protein with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `protein` | Protein identifier |
+| `beta_month` | OLS slope for age (months) in males (reference sex) |
+| `se_month` | Standard error of `beta_month` |
+| `p_month` | Two-sided p-value for the age slope |
+| `q_month` | BH-adjusted FDR for the age slope |
+| `ci_month_low` / `ci_month_high` | Confidence interval bounds for `beta_month` |
+| `beta_int` | Interaction coefficient (difference in age slope: female − male) |
+| `se_int` | Standard error of `beta_int` |
+| `p_int` | Two-sided p-value for the sex × age interaction |
+| `q_int` | BH-adjusted FDR for the interaction term |
+| `ci_int_low` / `ci_int_high` | Confidence interval bounds for `beta_int` |
+| `signif_month` | `True` if `q_month` < 0.01 |
+| `signif_interaction` | `True` if `q_int` < 0.01 |
+| `error` | Error message if model fitting failed for this protein (otherwise absent) |
+
+---
+
+### `find-significant-peptides-not-significant-proteins.ipynb`
+
+Cross-references the peptide-level and protein-level OLS results to identify peptides that are statistically significant with respect to age but whose parent protein is not. Also produces a scatter plot comparing peptide and protein −log10(q) values and fits a linear regression to characterize the overall concordance between the two levels of analysis.
+
+**Inputs:**
+- `results/peptides-mouse-aging-features-ols.csv` — output of `peptide-fixed-effect-ols.ipynb`
+- `results/proteins-mouse-aging-features-ols.csv` — output of `protein-fixed-effect-ols.ipynb`
+
+**Output:** `results/peptide_protein_q_table.csv`
+
+One row per (peptide, protein) pair with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `peptide` | Modified peptide sequence |
+| `peptide_q_value` | BH-adjusted FDR for the age effect at the peptide level |
+| `protein` | Protein identifier associated with the peptide |
+| `protein_q_value` | BH-adjusted FDR for the age effect at the protein level; `NaN` if the protein was not found in the protein-level results |
+
+The notebook also produces a scatter plot of −log10(protein q-value) vs −log10(peptide q-value) for all peptide–protein pairs, with a linear regression line and R² reported. Peptides that are significant (q < 0.01) while their parent protein is not are highlighted in red.
 
 ---
 
@@ -21,7 +173,7 @@ data_analysis/
 
 ### `precursors_normalized_wide.tsv`
 
-Peptide-level abundance data in wide format. Each row represents a unique precursor ion and each column (after the first three) represents a sample.
+Peptide-level abundance data. Each row represents a unique precursor ion and each column (after the first three) represents a sample.
 
 | Column | Description |
 |--------|-------------|
@@ -32,7 +184,7 @@ Peptide-level abundance data in wide format. Each row represents a unique precur
 
 ### `proteins_normalized_wide.tsv`
 
-Protein-level abundance data in wide format. Each row represents a unique protein and each column (after the first) represents a sample.
+Protein-level abundance data. Each row represents a unique protein and each column (after the first) represents a sample.
 
 | Column | Description |
 |--------|-------------|
@@ -47,7 +199,7 @@ Protein-level abundance data in wide format. Each row represents a unique protei
 
 ### `metadata_wide.tsv`
 
-Sample metadata in wide format. Each row corresponds to a single sample run. The `replicate` column matches the sample column headers in both abundance data files and can be used to join metadata to quantitative data.
+Sample metadata. Each row corresponds to a single sample run. The `replicate` column matches the sample column headers in both abundance data files and can be used to join metadata to quantitative data.
 
 Samples include both biological specimens and two types of pooled quality control (QC) samples:
 - **IEQC** (In-experiment QC): pooled plasma QC injected throughout the run to monitor instrument stability
