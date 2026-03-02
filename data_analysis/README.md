@@ -14,6 +14,7 @@ data_analysis/
 ├── find-significant-peptides-not-significant-proteins.ipynb
 ├── peptide-regression-model.ipynb
 ├── protein-regression-model.ipynb
+├── protein-cv-linear-model.ipynb
 ├── data/
 │   ├── precursors_normalized_wide.tsv
 │   └── proteins_normalized_wide.tsv
@@ -224,6 +225,31 @@ Trains an ElasticNet regularized regression model to predict animal age (in mont
 | `feature` | Protein identifier or `sex` for the sex covariate |
 | `coefficient` | Average ElasticNet coefficient across all CV folds; zero for features excluded by regularization |
 | `nonzero_count` | Number of CV folds (out of `splits × repeats` total) in which the feature received a non-zero coefficient |
+
+---
+
+### `protein-cv-linear-model.ipynb`
+
+Models the coefficient of variation (CV) of protein abundance as a function of mean abundance, age group, and sex using OLS linear regression. This is used to assess whether inter-sample variability in protein abundance is systematically associated with age or sex.
+
+**Inputs:**
+- `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded
+
+**Approach:** For each protein, the CV (std / mean) of log-transformed abundance is computed within each (age group, sex) stratum. Two separate OLS models are then fit:
+
+1. **All-age model** — age groups split at 21 months (`isOld`: 0 = ≤21 months, 1 = >21 months)
+2. **Restricted-age model** — only samples aged 5–15 months (young) or 17–21 months (older) are included; samples >21 months are excluded (`isOld`: 0 = 5–15 months, 1 = 17–21 months)
+
+Both models take the form:
+
+```
+CV ~ meanAbundance + isOld + isMale
+```
+
+where one row per (protein, age group, sex) stratum is used as the unit of observation.
+
+**Outputs:** OLS model summaries printed to the notebook. No files are written to disk.
 
 ---
 
