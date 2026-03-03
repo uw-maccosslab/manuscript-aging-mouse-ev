@@ -26,7 +26,9 @@ data_analysis/
     ├── mouse-sex-specific-age-effect-features-ols.csv
     ├── peptide_protein_q_table.csv
     ├── peptide-age-regression-feature-importances.csv
-    └── protein-age-regression-feature-importances.csv
+    ├── peptide-age-regression-final-model-coefficients.csv
+    ├── protein-age-regression-feature-importances.csv
+    └── protein-age-regression-final-model-coefficients.csv
 ```
 
 ---
@@ -176,7 +178,7 @@ The notebook also produces a scatter plot of −log10(protein q-value) vs −log
 
 ### `peptide-regression-model.ipynb`
 
-Trains an ElasticNet regularized regression model to predict animal age (in months) from peptide-level abundances. Model performance is evaluated using repeated k-fold cross-validation, and feature importances (average ElasticNet coefficients across folds) are saved for downstream interpretation.
+Trains an ElasticNet regularized regression model to predict animal age (in months) from peptide-level abundances. Model performance is evaluated using repeated k-fold cross-validation, and feature importances (average ElasticNet coefficients across folds) are saved for downstream interpretation. A final model is then trained on all available data using the same hyperparameters, and the resulting per-peptide coefficients are saved to a separate report.
 
 **Inputs:**
 - `data/precursors_normalized_wide.tsv` — peptide-level abundance data (log2, median normalized)
@@ -188,6 +190,7 @@ Trains an ElasticNet regularized regression model to predict animal age (in mont
 
 **Outputs:**
 - `results/peptide-age-regression-feature-importances.csv` — per-feature average ElasticNet coefficients across all CV folds
+- `results/peptide-age-regression-final-model-coefficients.csv` — per-feature coefficients from a final ElasticNet model trained on all data
 - `results/peptide-age-regression-scatter-boxplot` — box plot with individual prediction points overlaid, saved as `.pdf`, `.svg`, and `.png`
 - `results/peptide-age-regression-confusion-matrix` — confusion matrix of discretized predicted vs. true ages, saved as `.pdf`, `.svg`, and `.png`
 
@@ -199,11 +202,18 @@ Trains an ElasticNet regularized regression model to predict animal age (in mont
 | `coefficient` | Average ElasticNet coefficient across all CV folds; zero for features excluded by regularization |
 | `nonzero_count` | Number of CV folds (out of `splits × repeats` total) in which the feature received a non-zero coefficient |
 
+`peptide-age-regression-final-model-coefficients.csv` columns:
+
+| Column | Description |
+|--------|-------------|
+| `feature` | Peptide label (`modifiedSequence (protein)`) or `sex` for the sex covariate |
+| `coefficient` | ElasticNet coefficient from the final model trained on all data; zero for features excluded by regularization |
+
 ---
 
 ### `protein-regression-model.ipynb`
 
-Trains an ElasticNet regularized regression model to predict animal age (in months) from protein-level abundances. This is the protein-level counterpart to `peptide-regression-model.ipynb`, using the same cross-validation scheme and model configuration.
+Trains an ElasticNet regularized regression model to predict animal age (in months) from protein-level abundances. This is the protein-level counterpart to `peptide-regression-model.ipynb`, using the same cross-validation scheme and model configuration. A final model is then trained on all available data using the same hyperparameters, and the resulting per-protein coefficients are saved to a separate report.
 
 **Inputs:**
 - `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
@@ -215,6 +225,7 @@ Trains an ElasticNet regularized regression model to predict animal age (in mont
 
 **Outputs:**
 - `results/protein-age-regression-feature-importances.csv` — per-feature average ElasticNet coefficients across all CV folds
+- `results/protein-age-regression-final-model-coefficients.csv` — per-feature coefficients from a final ElasticNet model trained on all data
 - `results/protein-age-regression-scatter-boxplot` — box plot with individual prediction points overlaid, saved as `.pdf`, `.svg`, and `.png`
 - `results/protein-age-regression-confusion-matrix` — confusion matrix of discretized predicted vs. true ages, saved as `.pdf`, `.svg`, and `.png`
 
@@ -225,6 +236,13 @@ Trains an ElasticNet regularized regression model to predict animal age (in mont
 | `feature` | Protein identifier or `sex` for the sex covariate |
 | `coefficient` | Average ElasticNet coefficient across all CV folds; zero for features excluded by regularization |
 | `nonzero_count` | Number of CV folds (out of `splits × repeats` total) in which the feature received a non-zero coefficient |
+
+`protein-age-regression-final-model-coefficients.csv` columns:
+
+| Column | Description |
+|--------|-------------|
+| `feature` | Protein identifier or `sex` for the sex covariate |
+| `coefficient` | ElasticNet coefficient from the final model trained on all data; zero for features excluded by regularization |
 
 ---
 
