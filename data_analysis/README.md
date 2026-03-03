@@ -27,8 +27,12 @@ data_analysis/
     ├── peptide_protein_q_table.csv
     ├── peptide-age-regression-feature-importances.csv
     ├── peptide-age-regression-final-model-coefficients.csv
+    ├── peptide-age-regression-scatter-boxplot.{pdf,svg,png}
+    ├── peptide-age-regression-confusion-matrix.{pdf,svg,png}
     ├── protein-age-regression-feature-importances.csv
-    └── protein-age-regression-final-model-coefficients.csv
+    ├── protein-age-regression-final-model-coefficients.csv
+    ├── protein-age-regression-scatter-boxplot.{pdf,svg,png}
+    └── protein-age-regression-confusion-matrix.{pdf,svg,png}
 ```
 
 ---
@@ -54,7 +58,7 @@ peptide ~ month + sex
         = β0 + β1·month + β2·sex[Female]
 ```
 
-where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference). Peptide abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference). Abundances are un-logged (2^x), re-transformed with log1p, and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
 
 **Output:** `results/peptides-mouse-aging-features-ols.csv`
 
@@ -91,7 +95,7 @@ protein ~ month + sex
         = β0 + β1·month + β2·sex[Female]
 ```
 
-where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference) but no interaction between age and sex is modeled. Protein abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+where `month` is the animal's age in months and `sex` is included as a categorical covariate (Male as reference) but no interaction between age and sex is modeled. Abundances are un-logged (2^x), re-transformed with log1p, and standard-scaled prior to fitting. P-values for the age slope (`β1`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
 
 **Output:** `results/proteins-mouse-aging-features-ols.csv`
 
@@ -128,7 +132,7 @@ protein ~ month * sex
         = β0 + β1·month + β2·sex[Female] + β3·(month × sex[Female])
 ```
 
-where `month` is the animal's age in months and `sex` is treatment-coded with Male as the reference. Protein abundances are log-transformed and standard-scaled prior to fitting. P-values for the age slope (`β1`) and the sex × age interaction term (`β3`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
+where `month` is the animal's age in months and `sex` is treatment-coded with Male as the reference. Abundances are un-logged (2^x), re-transformed with log1p, and standard-scaled prior to fitting. P-values for the age slope (`β1`) and the sex × age interaction term (`β3`) are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure.
 
 **Output:** `results/mouse-sex-specific-age-effect-features-ols.csv`
 
@@ -254,7 +258,7 @@ Models the coefficient of variation (CV) of protein abundance as a function of m
 - `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
 - `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded
 
-**Approach:** For each protein, the CV (std / mean) of log-transformed abundance is computed within each (age group, sex) stratum. Two separate OLS models are then fit:
+**Approach:** Abundances are un-logged (2^x) and re-transformed with log1p. For each protein, the CV (std / mean) of the transformed abundance is computed within each (age group, sex) stratum. Two separate OLS models are then fit:
 
 1. **All-age model** — age groups split at 21 months (`isOld`: 0 = ≤21 months, 1 = >21 months)
 2. **Restricted-age model** — only samples aged 5–15 months (young) or 17–21 months (older) are included; samples >21 months are excluded (`isOld`: 0 = 5–15 months, 1 = 17–21 months)
