@@ -15,6 +15,7 @@ data_analysis/
 ├── peptide-regression-model.ipynb
 ├── protein-regression-model.ipynb
 ├── protein-cv-linear-model.ipynb
+├── protein-find-discordant-sex-proteins-spearman-rho.ipynb
 ├── data/
 │   ├── precursors_normalized_wide.tsv
 │   └── proteins_normalized_wide.tsv
@@ -32,7 +33,9 @@ data_analysis/
     ├── protein-age-regression-feature-importances.csv
     ├── protein-age-regression-final-model-coefficients.csv
     ├── protein-age-regression-scatter-boxplot.{pdf,svg,png}
-    └── protein-age-regression-confusion-matrix.{pdf,svg,png}
+    ├── protein-age-regression-confusion-matrix.{pdf,svg,png}
+    ├── protein-sex-discordant-spearman-rho.csv
+    └── sex-discordant-proteins-by-spearman-rho.{pdf,svg,png}
 ```
 
 ---
@@ -272,6 +275,53 @@ CV ~ meanAbundance + isOld + isMale
 where one row per (protein, age group, sex) stratum is used as the unit of observation.
 
 **Outputs:** OLS model summaries printed to the notebook. No files are written to disk.
+
+---
+
+### `protein-find-discordant-sex-proteins-spearman-rho.ipynb`
+
+Identifies proteins whose abundance–age correlation differs significantly between males and females. For each protein, a Spearman rank correlation with age is computed globally and separately for each sex. A Fisher z-test is then used to test whether the male and female Spearman rhos are significantly different. P-values from the Fisher z-test are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure. Proteins passing the FDR threshold are visualized as per-protein scatter plots with OLS trend lines for each sex.
+
+**Inputs:**
+- `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
+- `metadata/metadata_wide.tsv` — sample metadata; QC samples (those lacking an `Age_months` value) are excluded from the analysis
+
+**Pre-processing:** Abundances are un-logged (2^x) prior to computing Spearman correlations. Sex is integer-encoded (Male = 0, Female = 1).
+
+**Method:**
+
+For each protein:
+1. Compute the global Spearman ρ between protein abundance and age (months) across all samples.
+2. Compute sex-specific Spearman ρ values (male-only and female-only samples).
+3. Apply a Fisher z-transformation to test whether the male and female correlations are significantly different:
+
+```
+Z = (z_male − z_female) / √(1/(n_male − 3) + 1/(n_female − 3))
+```
+
+where z = 0.5 · ln((1 + ρ) / (1 − ρ)). A two-sided p-value is obtained from the standard normal distribution. P-values are corrected across all proteins using the BH FDR procedure.
+
+**Outputs:**
+- `results/protein-sex-discordant-spearman-rho.csv` — per-protein Spearman correlation statistics and Fisher z-test results
+- `results/sex-discordant-proteins-by-spearman-rho` — scatter plots of significant proteins with OLS trend lines per sex, saved as `.pdf`, `.svg`, and `.png`
+
+`protein-sex-discordant-spearman-rho.csv` columns:
+
+| Column | Description |
+|--------|-------------|
+| `protein` | Protein identifier |
+| `n_all` | Number of samples used for the global correlation |
+| `n_male` | Number of male samples used |
+| `n_female` | Number of female samples used |
+| `rho_all` | Global Spearman ρ (all samples vs. age) |
+| `p_all` | Approximate p-value for the global Spearman ρ |
+| `rho_male` | Spearman ρ for male samples vs. age |
+| `p_male` | Approximate p-value for the male Spearman ρ |
+| `rho_female` | Spearman ρ for female samples vs. age |
+| `p_female` | Approximate p-value for the female Spearman ρ |
+| `z_diff` | Fisher z-test statistic for the difference between male and female ρ values |
+| `p_diff` | Two-sided p-value from the Fisher z-test |
+| `fdr_diff` | BH-adjusted FDR for the Fisher z-test p-value |
 
 ---
 
