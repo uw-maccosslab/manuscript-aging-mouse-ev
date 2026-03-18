@@ -57,7 +57,7 @@ $~$
 
 ## Files
 
-Input files 25 MB or less for scripts are located in the **input** folder. All of the files uploaded to **input** will also located on the Aging Mouse EV page of PanoramaWeb. Any files larger than 25 MB are freely available on PanoramaWeb.
+Input files 25 MB or less for scripts are located in the **input** folder. All of the files uploaded to **input** will also located on the Aging Mouse EV page of PanoramaWeb. Any files larger than 25 MB are available on PanoramaWeb.
 
 ### aging_ev_proteome_figures_2_3_4_S1_S2_S3.Rmd input files
 
