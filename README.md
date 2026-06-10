@@ -10,19 +10,7 @@ $~$
 
 
 ## Repository Layout
-```mermaid
-graph TD;
-    [main/]-->[bin/];
-    [main/]-->[data_analysis/];
-    [main/]-->[rmd_analysis/];
-    [data_analysis/]-->[data/];
-    [data_analysis/]-->[metadata/];
-    [data_analysis/]-->[results/];
-    [rmd_analysis/]-->[input/];
-    [rmd_analysis/]-->[rmd_output/];
-    [rmd_output/]-->[plots/];
-    [rmd_output/]-->[tables/];
-```
+
 * **data_analysis:** Contains Jupyter Notebooks used to generate manuscript figures
 
   - **data:** Contains a copy of protein and peptide-level data generated in Nextflow and Skyline
