@@ -1,10 +1,24 @@
-# An analysis of the aging murine extracellular vesicle (EV) proteome
+# Circulating extracellular vesicles in plasma carry accessible molecular signatures of aging in mice
 
 This repository contains the input files and the analyses described in the manuscript **"Circulating extracellular vesicles in plasma carry accessible molecular signatures of aging in mice"**, which is pending submission to bioRxiv.
 
 LC-MS Data was processed manually or with Nextflow workflows using Skyline and the results were exported using the Skyline document grid. Nanosight data was processed manually and with R.
 
-All downstream analysis and figure generation were perfomed using R (R Markdown), Python (Jupyter Notebooks), and Inkscape (When illustrations needed).
+All downstream analysis and figure generation were perfomed using R (R Markdown), Python (Jupyter Notebooks), and Inkscape (When manual illustrations were needed).
+
+
+$~$
+
+## Important resources
+
+* **Manuscript Preprint:** Pending submission
+
+* **Panorama Public:** Pending submission
+
+* **ProteomeXchange registration:** Pending submission
+
+* **Dataset DOI:** Pending submission
+
 
 $~$
 
@@ -21,8 +35,10 @@ $~$
 
 * **rmd_analysis:** Contains R Markdown file used to generate manuscript figures
 
-  - **input:** Contains a copy of protein and peptide-level data generated in Nextflow and Skyline, metadata, and EV method confirmation data
- 
+  - **input:** Contains a copy of protein and peptide-level data generated in Nextflow and Skyline, metadata, EV method confirmation data
+
+    + **python_results:** Contains a copy of a subset of the output from the Jupyter Notebooks
+
   - **rmd_output:** Contains output from Rmd file
 
 * **miscellaneous:** Contains additional, miscellaneous files.
@@ -32,13 +48,6 @@ $~$
 
 $~$
 
-## Important resources
+## Data Processing
 
-* **Manuscript Preprint:** Pending submission
-
-* **Panorama Public:** Pending submission
-
-* **ProteomeXchange registration:** Pending submission
-
-* **Dataset DOI:** Pending submission
-
+The Jupyter Notebook and Rmd can be run independetly. Python and R are both required to run all analyses in this repository.
