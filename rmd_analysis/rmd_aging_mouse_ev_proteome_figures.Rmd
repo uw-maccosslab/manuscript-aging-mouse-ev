@@ -16,8 +16,7 @@ $~$
 
 ## Experiments
 
-Describe experiment here.
-
+Aging Cohort
 
 * Sample preparation
 
@@ -27,7 +26,23 @@ Describe experiment here.
   
   - 24 minute LC gradients using Vanquish Neo (Thermo) coupled to a Thermo Orbitrap Astral. All data collected with data-independent acquisition MS (DIA-MS) 
   
-  - Resulting MS data analyzed using gas-phase fractionated libraries comprised of pooled experimental samples.
+  - Resulting data was analyzed using gas-phase fractionated libraries comprised of a pool of the experimental samples collected in separate narrow-window runs.
+
+
+$~$
+
+
+Enrichment/Depletion Experiment
+
+* Sample preparation
+
+  - Processed 1 $\mu$L of neat pooled mouse plasma and performed Mag-Net enrichment from 100 $\mu$L of the same mouse plasma.
+  
+  - In the Mag-Net prep, denaturation, reduction, alkylation, and protein aggregation and capture (PAC), tryptic digestion were done on strong anion exchange (SAX) beads. For the neat plasma, denaturation, reduction, and alkylation were done before precipitation onto hydroxyl beads and subsequent tryptic digestion
+  
+  - 60 minute LC gradients using EasyLC 1200 coupled to a Thermo Orbitrap Exploris 480. All data were collected with data-independent acquisition MS (DIA-MS) 
+  
+  - Resulting data was analyzed using gas-phase fractionated libraries comprised of a pool of the experimental samples collected in separate narrow-window runs.
 
 
 <br/><br/>
@@ -80,8 +95,7 @@ Sample data and metadata are needed to run the R markdown.
   + Sex-differential OLS results: mouse-sex-specific-age-effect-features-ols.csv
   
   + Protein-level regression analysis: protein-age-regression-final-model-coefficients.csv 
-  
-  + Significant peptides in peptide model without matched protein in protein model: peptides_sig_without_sig_proteins_20251204.csv
+
 
 <br/><br/>
 
@@ -152,13 +166,7 @@ Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
     
     setwd(working_directory)
     getwd()
-#     
-# # Setting option for knitting
-#     knitr::opts_knit$set(echo = TRUE, root.dir = 'C:\\Users\\Krist\\OneDrive\\Desktop\\2024_Tsantilas_Churchill_MacCoss\\manuscript-aging-plasma-evs')
-#     
-#     setwd('C:\\Users\\Krist\\OneDrive\\Desktop\\2024_Tsantilas_Churchill_MacCoss\\manuscript-aging-plasma-evs')
-#     getwd()
-#     
+
 
 ```
 
@@ -265,10 +273,10 @@ Importing files including sample data and metadata.
 # Figure S1
     # Particle counting distribution of Mag-Net fraction collected 
     # on Malvern Nanosight NS300 (Software NTA 3.4, Build 3.4.4)
-      particle_count_A <- read.csv("input\\magnet_characterization\\IEQC_ReplicateA_1to25_ExperimentSummary_ParticleCounts.csv",
+      particle_count_A <- read.csv("input\\IEQC_ReplicateA_1to25_ExperimentSummary_ParticleCounts.csv",
                                    header = TRUE, na.strings="#N/A", sep = ",")
 
-      particle_count_B <- read.csv("input\\magnet_characterization\\IEQC_ReplicateB_1to25_ExperimentSummary_ParticleCounts.csv",
+      particle_count_B <- read.csv("input\\IEQC_ReplicateB_1to25_ExperimentSummary_ParticleCounts.csv",
                                    header = TRUE, na.strings="#N/A", sep = ",")
 
       # Renaming unruly column headers
@@ -280,25 +288,25 @@ Importing files including sample data and metadata.
     
                   
     # Mouse total plasma and Mag-Net fraction data
-      magnet_dia <- read.csv("input\\magnet_characterization\\fold_change_plasma_evs_protein_level.csv",
+      magnet_dia <- read.csv("input\\fold_change_plasma_evs_protein_level.csv",
                              header = TRUE, na.strings="#N/A", sep = ",")
 
     # Mouse total plasma and Mag-Net fraction metadata
-      magnet_reps <- read.csv("input\\magnet_characterization\\plasma_ev_replicates.csv",
+      magnet_reps <- read.csv("input\\plasma_ev_replicates.csv",
                               header = TRUE, na.strings="#N/A", sep = ",") %>%
                      select(Replicate, SampleGroup)
 
     # Targets for enrichment and depletion plots
-      magnet_prot_targets <- read.csv("input\\magnet_characterization\\ev_and_hap_proteins.csv",
+      magnet_prot_targets <- read.csv("input\\ev_and_hap_proteins.csv",
                                       header = TRUE, na.strings="#N/A", sep = ",")
 
       
     # Sex-differential Spearman results by Mike Riffle in Jupyter notebook
-      sex_spearman <- read.csv("results\\protein-sex-discordant-spearman-rho.csv",
+      sex_spearman <- read.csv("input\\python_results\\protein-sex-discordant-spearman-rho.csv",
                                       header = TRUE, na.strings="#N/A", sep = ",")
       
     # Sex-differential OLS results by Mike Riffle in Jupyter notebook
-      sex_ols <- read.csv("results\\mouse-sex-specific-age-effect-features-ols.csv",
+      sex_ols <- read.csv("input\\python_results\\mouse-sex-specific-age-effect-features-ols.csv",
                                       header = TRUE, na.strings="#N/A", sep = ",")
 # Table S3
     # Manual categorization of proteins changed differential in aging by sex
@@ -308,14 +316,9 @@ Importing files including sample data and metadata.
                           rename("Functional Categories" = "Functional.categories")
       
     # Protein-level regression analysis results by Mike Riffle in Jupyter notebook
-      prot_regr_age <- read.csv("results\\protein-age-regression-final-model-coefficients.csv",
+      prot_regr_age <- read.csv("input\\python_results\\protein-age-regression-final-model-coefficients.csv",
                                       header = TRUE, na.strings="#N/A", sep = ",")
-      
-   # Peptides significant in elastic net model and associated protein not in protein model
-      peps_no_sig_prot <- read.csv("input\\peptides_sig_without_sig_proteins_20251204.csv",
-                                      header = TRUE, na.strings="#N/A", sep = ",")
-    
-      
+
          
 ```
 
@@ -1207,7 +1210,7 @@ generate_paired_sex_corr_plots <- function(individual_data_f, correlation_data_f
             plot.background = element_blank(),
             panel.grid = element_blank(),
             axis.text = element_text(size = 13.5, color = "black"),
-            axis.title = element_blank(),
+            axis.title = element_text(size = 14, color = "black"),
             plot.title = element_text(size = 15, color = "black", hjust = 0.5),
             plot.subtitle = element_text(size = 11, face = "italic", color = "black"),
             legend.position = "none") +
@@ -1250,9 +1253,10 @@ generate_paired_sex_corr_plots <- function(individual_data_f, correlation_data_f
 
 ```{r function_fc_barplot}
 
-barplot_fc_magnet <- function(dataframe, category_type, filename_string){
-  
-      fc_barplot  <- (ggplot(data=filter(dataframe, Category == category_type), aes(x=reorder(Protein,Order), y=Log2FC, fill=type)) +
+barplot_fc_magnet <- function(dataframe, filename_string){
+
+      fc_barplot  <- (ggplot(data=dataframe, aes(x=reorder(Protein,Order), y=Log2FC, fill=type)) +
+
           geom_col(color="black", position=position_dodge2(width = 0.8, reverse = FALSE))+
         # Line range to show error
           geom_linerange(aes(x=reorder(Protein,Order), ymin=(Log2FC-FC_SD_Log2), ymax=(Log2FC+FC_SD_Log2)),
@@ -1264,17 +1268,19 @@ barplot_fc_magnet <- function(dataframe, category_type, filename_string){
               axis.title=element_text(size=18,face="bold"),
               axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=18, color = "black"),
               axis.text.y = element_text(size=18, color = "black"),
-              legend.position="none",
-              legend.title=element_blank(),
-              legend.text=element_blank(),
+              legend.position="right",
+              legend.title = element_text(size = 18),
+              legend.text = element_text(size = 16),
+              legend.margin=margin(t = 0, r = 0.1, b = 0, l = 0, "in"),
+              legend.key.size = unit(0.4, "in"),
               axis.title.x = element_blank())+
         geom_hline(yintercept=0, linetype="solid", color = "black", linewidth=2) +
         ylab(yaxval_edbar) +
-        scale_fill_manual(values=c(Enriched="blue", Depleted="red2", "Not Significant"="grey40"))
+        scale_fill_manual(name = "Status",values=c(Enriched="blue", Depleted="red2", "Not Significant"="grey40"))
           )
       
       # Export plot as svg
-      ggsave(file = paste("output//plots//",basename,filename_string,".svg", sep=""), plot=fc_barplot, width=8, height=5)
+      ggsave(file = paste("rmd_output//plots//",basename,filename_string,".svg", sep=""), plot=fc_barplot, width=10, height=7)
 
       return(fc_barplot)
 }
@@ -1793,7 +1799,7 @@ Setting-up vector of a subset of age-related proteins from literature to conside
 summary <- (((list_corr_prot_all[[1]] | list_corr_prot_all[[2]] | list_corr_prot_all[[3]] | list_corr_prot_all[[4]] | list_corr_prot_all[[5]]) / (list_corr_prot_all[[6]] | list_corr_prot_all[[7]] | list_corr_prot_all[[8]] | list_corr_prot_all[[9]] | list_corr_prot_all[[10]]) / (list_corr_prot_all[[11]] | list_corr_prot_all[[12]] | list_corr_prot_all[[13]] | list_corr_prot_all[[14]] | list_corr_prot_all[[15]])) + plot_layout(nrow = 3, heights = c(1:1))) #, guides = "collect"))
 
   ggsave(file = paste(working_directory, "\\rmd_output\\plots\\",basename,filenamebase,"corr_plot_all_sumary.png", sep=""), plot=summary, width=14, height=10)
-  
+
 
 
   corr_y_axis_expr <- expression(Log[2]*"(Normalized Area)")
@@ -1811,12 +1817,26 @@ fig2e <- as.ggplot(list_corr_prot_all[[1]] | list_corr_prot_all[[2]] | list_corr
   ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"fig2e.png", sep=""), plot=fig2e, width=3, height=12)
 
 list_corr_prot_all[[6]] <- (list_corr_prot_all[[6]] + theme(axis.title.x = element_blank()) + ylab(corr_y_axis_expr))
+
+list_corr_prot_all[[7]] <- (list_corr_prot_all[[7]] + theme(axis.title = element_blank())) 
+
+list_corr_prot_all[[8]] <- (list_corr_prot_all[[8]] + theme(axis.title.y = element_blank()) + xlab("Age (Months)"))
+
+list_corr_prot_all[[9]] <- (list_corr_prot_all[[9]] + theme(axis.title = element_blank()))
+
+list_corr_prot_all[[10]] <- (list_corr_prot_all[[10]] + theme(axis.title = element_blank())) 
+
+
 list_corr_prot_all[[11]] <- (list_corr_prot_all[[11]] + theme(axis.title.x = element_blank()) + ylab(corr_y_axis_expr))
-list_corr_prot_all[[8]] <- (list_corr_prot_all[[8]] + theme(axis.title = element_blank()))
+
+list_corr_prot_all[[12]] <- (list_corr_prot_all[[12]] + theme(axis.title = element_blank()))
+
 list_corr_prot_all[[13]] <- (list_corr_prot_all[[13]] + theme(axis.title.y = element_blank()) + xlab("Age (Months)"))
 
-
+list_corr_prot_all[[14]] <- (list_corr_prot_all[[14]] + theme(axis.title = element_blank()))
                         
+list_corr_prot_all[[15]] <- (list_corr_prot_all[[15]] + theme(axis.title = element_blank()))
+
 
 
 fig3a <- as.ggplot((list_corr_prot_all[[6]] | list_corr_prot_all[[7]] | list_corr_prot_all[[8]] | list_corr_prot_all[[9]] | list_corr_prot_all[[10]]))
@@ -1961,20 +1981,19 @@ fig2_top_pca <- (((fig2b | fig2c) + plot_layout(ncol = 2, widths = c(1:1), guide
 
 fig2_top_row <- ((fig2a | fig2_top_pca) + plot_layout(ncol = 2, widths = c(3.2, 6.8)))
 
-fig2 <- ((fig2_top_row / free(fig2d_rotated, side = "rbl") / fig2e) + plot_layout(heights = c(1.5, 6, 2.75)) &
+fig2_partial <- ((fig2_top_row / free(fig2d_rotated, side = "rbl") / fig2e) + plot_layout(heights = c(1.5, 6, 2.75)) &
                theme(plot.margin = margin(5, 0, 0, 5), 
                      plot.tag = element_text(size = 25), 
                      plot.tag.position = c(0, 1)))
 
-ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"fig2.png", sep=""), plot=fig2, width=(12), height=(16))
-
+ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"fig2_partial.svg", sep=""), plot=fig2_partial, width=(12), height=(16))
 # Moved Panel A to x = 50 and Panel B to 579.173
 
 ```
 
 ```{r print_fig2, fig.dim = c(15, 12)}
 
-fig2
+fig2_partial
 
 ```
 
@@ -1996,10 +2015,14 @@ fig3 <- ((free(fig3a, side = "rl") / free(fig3b, side = "rl") / fig3c) +
 
 ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"fig3.png", sep=""), plot=fig3, width=(14), height=(12))
 
+
+ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"fig3.svg", sep=""), plot=fig3, width=(14), height=(12))
+
+
 ```
 
 
-```{r print_fig3, , fig.dim = c(10, 14)}
+```{r print_fig3, , fig.dim = c(10, 12)}
 
 fig3
 
@@ -2076,7 +2099,7 @@ Taking into account Log2 transformation on standard deviation:
 #################################################################################
 #################################################################################
 ## 
-##      Figure S1A and S1B
+##      Figure S1A
 
 # Remove MS Level and Fold Change Result column
 Simplified_FC <- subset(magnet_dia, select = -c(MS.Level, Fold.Change.Result) ) 
@@ -2125,7 +2148,7 @@ Simplified_FC <- Simplified_FC %>%
 #################################################################################
 #################################################################################
 ## 
-##      Figure S1C
+##      Figure S1B
 
 particle_count_A <- particle_count_A %>%
                     rename("Size" = "Bin.centre..nm.", 
@@ -2160,21 +2183,14 @@ particle_counts <- rbind(particle_count_A, particle_count_B)
 yaxval_edbar <- expression("Log"[2]~"(EV fraction / Total plasma)")
 
 figS1a <- barplot_fc_magnet(dataframe = Simplified_FC_figs1, 
-                      category_type = "marker", 
-                      filename_string = "figS1a")
-
-figS1b <- barplot_fc_magnet(dataframe = Simplified_FC_figs1, 
-                      category_type = "plasma_abundant", 
-                      filename_string = "figS1b")
-
-
+                      filename_string = "figS1ab")
 #################################################################################
 #################################################################################
 ##
-##      Figure S1C
+##      Figure S1b
 
 # Plotting mean particle concentration of two technical replicate captures of the IEQC sample pool
-figS1c <- (ggplot(particle_counts, aes(x=Size, y=Average, group=processing_replicate, color = processing_replicate, fill = processing_replicate))+
+figS1b <- (ggplot(particle_counts, aes(x=Size, y=Average, group=processing_replicate, color = processing_replicate, fill = processing_replicate))+
            geom_ribbon(aes(y=Average, ymin=Average-SD, ymax=Average+SD), alpha=.4, colour = NA, show.legend = FALSE) +
            geom_line(linewidth=1.5)+
            theme_minimal() +
@@ -2197,18 +2213,15 @@ figS1c <- (ggplot(particle_counts, aes(x=Size, y=Average, group=processing_repli
            scale_x_continuous(name="Particle Size (nm)", limits=c(0, 400)) +
            scale_color_manual(name = "Technical\nReplicate", values = c("A" = "#994F00", "B" = "#006CD1")) +
            scale_fill_manual(values = c("A" = "#994F00", "B" = "#006CD1")))
-    ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"figS1c.svg", sep=""), plot=figS1c, width=(8), height=(6))
+    ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"figS1b.svg", sep=""), plot=figS1b, width=(10), height=(6))
 
 
 ```
 
 ```{r figS1}
-# Top row: Panel A at 20%, Panel B at 80%
-figS1_top_row <- figS1a + figS1b + plot_layout(ncol  = 2, widths = c(0.33, 0.66))
-
-# Full figure: top row + Panel C
-figS1 <- ((figS1_top_row / figS1c) + plot_layout(nrow  = 2, heights = c(1, 1))  + 
-            plot_annotation(tag_levels = list(c("A", "B", "C"))) & theme(plot.tag = element_text(size = 5)))
+# Full figure
+figS1 <- ((figS1a / figS1b) + plot_layout(nrow  = 2, widths = c(1, 1))  + 
+            plot_annotation(tag_levels = list(c("A", "B"))) & theme(plot.tag = element_text(size = 5)))
 
 ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"figS1.svg", sep=""), plot=figS1, width=(10), height=(14))
 
@@ -2975,6 +2988,11 @@ figS4_targets <- generate_paired_sex_corr_plots(individual_data_f = (prot_norm_m
 
 ```{r figS4}
 
+figS4_targets[[1]] <- (figS4_targets[[1]] + theme(axis.title.x = element_blank()) + ylab(corr_y_axis_expr))
+figS4_targets[[3]] <- (figS4_targets[[3]] + theme(axis.title.y = element_blank()) + xlab("Age (Months)"))
+
+
+
 figS4_lower_partial <- ((figS4_targets[[1]] + figS4_targets[[2]] + figS4_targets[[3]] + figS4_targets[[4]] + figS4_targets[[5]]) + plot_layout(ncol = 5, guides = "collect"))
 
 figS4_upper_partial <- ((figS4a + figS4b + figS4c) + plot_layout(ncol= 3, guides = "collect"))
@@ -2984,7 +3002,6 @@ figS4_partial <- ((figS4_upper_partial / figS4_lower_partial) +
 
 ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"figS4_partial.svg", sep=""), plot=figS4_partial, width=16, height=10)
 
-ggsave(file = paste(working_directory,"\\rmd_output\\plots\\",basename,filenamebase,"figS4_partial.png", sep=""), plot=figS4_partial, width=16, height=10)
 
 ```
 
@@ -3012,7 +3029,7 @@ The Elastic Net model and OLS analyses are located in the python script by Mike 
 <br/><br/>
 
 
-# Table 3 {.tabset .tabset-fade}
+# Table 2 {.tabset .tabset-fade}
 
 Merging results from the OLS and Spearman analyses in the python script by Mike Riffle (also on GitHub) to generate a basic version of Table 3 which was edited externally using Microsft Excel.
 
@@ -3040,13 +3057,13 @@ sex_ols_filter <- sex_ols %>%
                   mutate("OLS Interaction q < 0.01" = if_else(q_int < 0.01, "Yes", "No"))
                   # mutate("OLS Interaction q < 0.01" = "Yes")
 
-table3_partial01 <- sex_spearman_filter %>%
+table2_partial01 <- sex_spearman_filter %>%
                     full_join(., sex_ols_filter, by = "protein")
 
 # Simplify protein column
-    table3_partial02 <- extract_accession_protID(dataframe = table3_partial01)
+    table2_partial02 <- extract_accession_protID(dataframe = table2_partial01)
     
-    table3_unformatted <- table3_partial02 %>%
+    table2_unformatted <- table2_partial02 %>%
                           filter(fdr_diff < 0.05 | q_int < 0.01) %>%
                           select(prot_id, first_accession, "Delta Spearman FDR < 0.05", rho_male, rho_female, fdr_diff, "OLS Interaction q < 0.01", beta_int, q_int) %>%
                           rename("ProteinID" = "prot_id", 
@@ -3061,7 +3078,7 @@ table3_partial01 <- sex_spearman_filter %>%
                                  q_int = formatC(q_int, format = "e", digits = 1))
                                  #  round(q_int, 5))
 
-    write.csv(table3_unformatted, file = paste0(working_directory,"\\rmd_output\\tables\\",basename,filenamebase,"Table3_unformatted.csv"))
+    write.csv(table2_unformatted, file = paste0(working_directory,"\\rmd_output\\tables\\",basename,filenamebase,"Table2_unformatted.csv"))
     
 
 ```
@@ -3069,7 +3086,7 @@ table3_partial01 <- sex_spearman_filter %>%
 
 <br/><br/>
 
-# Tables S11 & S12 {.tabset .tabset-fade}
+# Tables S12 & S13 {.tabset .tabset-fade}
 
 ```{r}
 prot_regr_age_flag <- prot_regr_age %>%
