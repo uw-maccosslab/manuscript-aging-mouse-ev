@@ -13,7 +13,7 @@ $~$
 
 * **Manuscript Preprint:** Pending submission
 
-* **Panorama Public:** Pending submission
+* **Panorama Public:** [maccoss-aging-mouse-ev](https://panoramaweb.org/maccoss-aging-mouse-ev.url)
 
 * **ProteomeXchange registration:** Pending submission
 
