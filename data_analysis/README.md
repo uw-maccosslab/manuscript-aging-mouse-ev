@@ -35,7 +35,8 @@ data_analysis/
     ├── protein-age-regression-scatter-boxplot.{pdf,svg,png}
     ├── protein-age-regression-confusion-matrix.{pdf,svg,png}
     ├── protein-sex-discordant-spearman-rho.csv
-    └── sex-discordant-proteins-by-spearman-rho.{pdf,svg,png}
+    ├── sex-discordant-proteins-by-spearman-rho.{pdf,svg,png}
+    └── aging-marker-proteins-by-sex.{pdf,svg,png}
 ```
 
 ---
@@ -280,7 +281,7 @@ where one row per (protein, age group, sex) stratum is used as the unit of obser
 
 ### `protein-find-discordant-sex-proteins-spearman-rho.ipynb`
 
-Identifies proteins whose abundance–age correlation differs significantly between males and females. For each protein, a Spearman rank correlation with age is computed globally and separately for each sex. A Fisher z-test is then used to test whether the male and female Spearman rhos are significantly different. P-values from the Fisher z-test are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure. Proteins passing the FDR threshold are visualized as per-protein scatter plots with OLS trend lines for each sex.
+Identifies proteins whose abundance–age correlation differs significantly between males and females. For each protein, a Spearman rank correlation with age is computed globally and separately for each sex. A Fisher z-test is then used to test whether the male and female Spearman rhos are significantly different. P-values from the Fisher z-test are corrected for multiple testing using the Benjamini–Hochberg (BH) FDR procedure. Proteins passing the FDR threshold are visualized as per-protein scatter plots with OLS trend lines and 95% confidence bands for each sex. The notebook also produces a companion panel of five literature-derived aging markers, plotted the same way.
 
 **Inputs:**
 - `data/proteins_normalized_wide.tsv` — protein-level abundance data (log2, median normalized)
@@ -303,7 +304,8 @@ where z = 0.5 · ln((1 + ρ) / (1 − ρ)). A two-sided p-value is obtained from
 
 **Outputs:**
 - `results/protein-sex-discordant-spearman-rho.csv` — per-protein Spearman correlation statistics and Fisher z-test results
-- `results/sex-discordant-proteins-by-spearman-rho` — scatter plots of significant proteins with OLS trend lines per sex, saved as `.pdf`, `.svg`, and `.png`
+- `results/sex-discordant-proteins-by-spearman-rho` — scatter plots of the significant proteins with per-sex OLS trend lines and 95% confidence bands, saved as `.pdf`, `.svg`, and `.png`
+- `results/aging-marker-proteins-by-sex` — companion panel of five literature-derived aging markers, saved as `.pdf`, `.svg`, and `.png`
 
 `protein-sex-discordant-spearman-rho.csv` columns:
 
@@ -322,6 +324,22 @@ where z = 0.5 · ln((1 + ρ) / (1 − ρ)). A two-sided p-value is obtained from
 | `z_diff` | Fisher z-test statistic for the difference between male and female ρ values |
 | `p_diff` | Two-sided p-value from the Fisher z-test |
 | `fdr_diff` | BH-adjusted FDR for the Fisher z-test p-value |
+
+**Figures:**
+
+*Discordant-protein grid* (`sex-discordant-proteins-by-spearman-rho`) — one panel per protein passing `fdr_diff` ≤ 0.05 (21 proteins), laid out 5 panels per row. Each panel shows male and female samples against age, with a per-sex OLS trend line and a shaded 95% confidence band for the mean response. Panel titles report the per-sex Spearman ρ values and the Fisher z-test FDR. The trend lines are for visual guidance only — they are not the Spearman fit.
+
+*ρ vs. ρ scatter* — female Spearman ρ against male Spearman ρ for every protein, with the significant proteins highlighted and labeled. Displayed inline only; not written to `results/`.
+
+*Aging-marker panel* (`aging-marker-proteins-by-sex`) — age trajectories for five age-related markers drawn from the literature (OSTP, ICAM1, CALR, PAI1, GRN), using the same colors, log2 transform, and 95% confidence bands as the grid above. Unlike the grid, these five are selected by biological interest rather than by `fdr_diff`, so panel titles report **BH-adjusted per-sex Spearman p-values** instead of the Fisher z-test FDR.
+
+Those adjusted p-values are computed to match the analogous panel (figS4 D–H) in `../rmd_analysis/rmd_aging_mouse_ev_proteome_figures.Rmd`, which builds them in `corrspear_function_ageVSabundance()`:
+
+- Male and female are **two independent correction families** — they are never pooled into one.
+- Each family spans **all 2574 proteins** (every protein except the `sp|P00924|ENO1_YEAST` control, which the R script filters out), so the correction is proteome-wide rather than across only the five plotted proteins.
+- The IEQC/IBQC filter in the R script removes *samples*, not proteins, and so does not affect the size of the correction family.
+
+No recomputation of the raw p-values is required: R's `cor.test(method = "spearman", exact = FALSE, continuity = FALSE)` uses the same asymptotic t approximation (t = ρ·√((n − 2)/(1 − ρ²)), df = n − 2) that produces the `p_male` / `p_female` columns above.
 
 ---
 
